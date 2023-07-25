@@ -48,6 +48,7 @@ contract Escrow is IEscrow, ReentrancyGuard {
         i_seller = seller;
         i_arbiter = arbiter;
         i_arbiterFee = arbiterFee;
+        s_state = State.Created;
     }
 
     /////////////////////
