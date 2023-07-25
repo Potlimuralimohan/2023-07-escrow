@@ -108,6 +108,7 @@ contract Escrow is IEscrow, ReentrancyGuard {
     /// @inheritdoc IEscrow
     function resolveDispute(uint256 buyerAward) external onlyArbiter nonReentrant inState(State.Disputed) {
         uint256 tokenBalance = i_tokenContract.balanceOf(address(this));
+        require(i_arbiterFee > 0 ,"fees must be greater than zero");
         uint256 totalFee = buyerAward + i_arbiterFee; // Reverts on overflow
         if (totalFee > tokenBalance) {
             revert Escrow__TotalFeeExceedsBalance(tokenBalance, totalFee);
@@ -116,11 +117,10 @@ contract Escrow is IEscrow, ReentrancyGuard {
         s_state = State.Resolved;
         emit Resolved(i_buyer, i_seller);
 
+        i_tokenContract.safeTransfer(i_arbiter, i_arbiterFee);
+
         if (buyerAward > 0) {
             i_tokenContract.safeTransfer(i_buyer, buyerAward);
-        }
-        if (i_arbiterFee > 0) {
-            i_tokenContract.safeTransfer(i_arbiter, i_arbiterFee);
         }
         tokenBalance = i_tokenContract.balanceOf(address(this));
         if (tokenBalance > 0) {
